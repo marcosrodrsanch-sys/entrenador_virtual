@@ -4,7 +4,7 @@ const app = express();
 
 //Mensaje que se envía en mi página principal
 app.get('/', (req, res) => {
-    res.send('¡Servidor funcionando!');
+    res.send('¡Servidor funcionando correctamente!');
 });
 
 //Num puerto
