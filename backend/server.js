@@ -1,16 +1,73 @@
-//Importamos la libreria Express
+// Cargar variables de entorno
+require('dotenv').config();
+
+// Importar dependencias
 const express = require('express');
+const cors = require('cors');
+const authRoutes = require('./routes/authRoutes');
+const { connectDB } = require('./config/database');
+
+// Crear aplicación Express
 const app = express();
 
-//Mensaje que se envía en mi página principal
+// Conectar a base de datos
+connectDB();
+
+// Middlewares
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Rutas de API
+app.use('/api/auth', authRoutes);
+
+// Ruta principal
 app.get('/', (req, res) => {
-    res.send('¡Servidor funcionando correctamente!');
+    res.json({
+        mensaje: '🏋️ API Entrenador Virtual',
+        version: '1.0.0',
+        estado: 'Servidor funcionando correctamente',
+        endpoints: {
+            registro: 'POST /api/auth/register',
+            login: 'POST /api/auth/login'
+        },
+        timestamp: new Date()
+    });
 });
 
-//Num puerto
-const PORT = 5000;
+// Ruta de salud
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'OK',
+        uptime: process.uptime(),
+        timestamp: Date.now()
+    });
+});
 
-//Enciende el servidor y avisa
+// Manejo de rutas no encontradas
+app.use((req, res) => {
+    res.status(404).json({ 
+        error: 'Ruta no encontrada',
+        path: req.originalUrl 
+    });
+});
+
+// Manejo de errores
+app.use((err, req, res, next) => {
+    console.error('Error:', err.stack);
+    res.status(500).json({ 
+        error: 'Error interno del servidor',
+        message: err.message 
+    });
+});
+
+// Configurar puerto y arrancar servidor
+const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    
+    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+    console.log(`📍 URL: http://localhost:${PORT}`);
+    console.log(`🏃 Modo: ${process.env.NODE_ENV || 'development'}`);
+   
 });
