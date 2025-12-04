@@ -1,0 +1,13 @@
+echo # Dependencias >> .gitignore
+echo node_modules/ >> .gitignore
+echo */node_modules/ >> .gitignore
+echo. >> .gitignore
+echo # Variables de entorno - IMPORTANTE >> .gitignore
+echo .env >> .gitignore
+echo backend/.env >> .gitignore
+echo *.env >> .gitignore
+echo. >> .gitignore
+echo # Archivos de prueba >> .gitignore
+echo test.html >> .gitignore
+echo *.log >> .gitignorebackend/.env 
+backend\\.env 

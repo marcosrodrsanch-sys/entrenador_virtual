@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API - Entrenador Virtual</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #555;
+            margin-top: 30px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        #token {
+            background-color: #e7f3ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+        .loading {
+            color: #007bff;
+            font-style: italic;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏋️ Test API - Entrenador Virtual</h1>
+    
+    <h2>1. Login</h2>
+    <button onclick="login()">Hacer Login</button>
+    <div id="token"></div>
+    
+    <h2>2. Perfil de Usuario</h2>
+    <button onclick="verPerfil()">Ver Perfil</button>
+    <button onclick="crearPerfil()">Crear/Actualizar Perfil</button>
+    <div id="perfil"></div>
+    
+    <h2>3. Generar Rutina con IA</h2>
+    <button onclick="generarRutina()">🤖 Generar Rutina Personalizada</button>
+    <p><small>⏱️ La generación puede tardar 10-20 segundos</small></p>
+    <div id="rutina"></div>
+    
+    <h2>4. Gestión de Rutinas</h2>
+    <button onclick="verRutinas()">Ver Todas mis Rutinas</button>
+    <button onclick="verRutinaActiva()">Ver Rutina Activa</button>
+    <div id="misRutinas"></div>
+
+    <script>
+        let tokenGuardado = '';
+        const API_URL = 'http://localhost:5000/api';
+        
+        // Función para hacer login
+        async function login() {
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        email: 'usuario1@gmail.com',
+                        password: '123456'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.token) {
+                    tokenGuardado = data.token;
+                    document.getElementById('token').innerHTML = 
+                        '<div class="success">✅ Login exitoso!</div>' +
+                        '<strong>Token obtenido:</strong><br>' + tokenGuardado;
+                } else {
+                    document.getElementById('token').innerHTML = 
+                        '<div class="error">Error: ' + (data.error || 'Login falló') + '</div>';
+                }
+            } catch (error) {
+                document.getElementById('token').innerHTML = 
+                    '<div class="error">Error: ' + error.message + '</div>';
+            }
+        }
+        
+        // Función para ver perfil
+        async function verPerfil() {
+            if (!tokenGuardado) {
+                alert('Primero haz login!');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/profile`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + tokenGuardado
+                    }
+                });
+                
+                const data = await response.json();
+                document.getElementById('perfil').innerHTML = 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('perfil').innerHTML = 
+                    '<div class="error">Error: ' + error.message + '</div>';
+            }
+        }
+        
+        // Función para crear/actualizar perfil
+        async function crearPerfil() {
+            if (!tokenGuardado) {
+                alert('Primero haz login!');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/profile`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + tokenGuardado
+                    },
+                    body: JSON.stringify({
+                        age: 25,
+                        weight: 75,
+                        height: 175,
+                        gender: 'male',
+                        fitnessLevel: 'intermediate',
+                        primaryGoal: 'ganar_musculo',
+                        trainingDays: 4,
+                        limitations: 'Ninguna limitación física'
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('perfil').innerHTML = 
+                    '<div class="success">✅ ' + data.message + '</div>' +
+                    '<pre>' + JSON.stringify(data.profile, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('perfil').innerHTML = 
+                    '<div class="error">Error: ' + error.message + '</div>';
+            }
+        }
+        
+        // Función para generar rutina con IA
+        async function generarRutina() {
+            if (!tokenGuardado) {
+                alert('Primero haz login!');
+                return;
+            }
+            
+            document.getElementById('rutina').innerHTML = 
+                '<div class="loading">⏳ Generando rutina personalizada con IA... Espera 10-20 segundos...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/routines/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + tokenGuardado
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('rutina').innerHTML = 
+                        '<div class="error">Error: ' + data.error + '</div>';
+                } else {
+                    document.getElementById('rutina').innerHTML = 
+                        '<div class="success">✅ ' + data.message + '</div>' +
+                        '<strong>ID de Rutina: ' + data.routineId + '</strong>' +
+                        '<pre>' + JSON.stringify(data.routine, null, 2) + '</pre>';
+                }
+            } catch (error) {
+                document.getElementById('rutina').innerHTML = 
+                    '<div class="error">Error: ' + error.message + '</div>';
+            }
+        }
+        
+        // Función para ver todas las rutinas
+        async function verRutinas() {
+            if (!tokenGuardado) {
+                alert('Primero haz login!');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/routines`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + tokenGuardado
+                    }
+                });
+                
+                const data = await response.json();
+                document.getElementById('misRutinas').innerHTML = 
+                    '<div class="success">Total de rutinas: ' + data.count + '</div>' +
+                    '<pre>' + JSON.stringify(data.routines, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('misRutinas').innerHTML = 
+                    '<div class="error">Error: ' + error.message + '</div>';
+            }
+        }
+        
+        // Función para ver rutina activa
+        async function verRutinaActiva() {
+            if (!tokenGuardado) {
+                alert('Primero haz login!');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/routines/active`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + tokenGuardado
+                    }
+                });
+                
+                const data = await response.json();
+                document.getElementById('misRutinas').innerHTML = 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('misRutinas').innerHTML = 
+                    '<div class="error">Error: ' + error.message + '</div>';
+            }
+        }
+        
+        // Auto-login al cargar la página (opcional)
+        window.onload = function() {
+            console.log('Página de prueba cargada. Haz click en "Hacer Login" para empezar.');
+        };
+    </script>
+</body>
+</html>
